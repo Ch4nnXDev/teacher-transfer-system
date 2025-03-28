@@ -43,7 +43,7 @@ The **Teacher-Transfer System** is a web-based platform designed to **streamline
 
 🔹 **Frontend:** React (JavaScript)  
 🔹 **Backend:** Node.js (Express.js)  
-🔹 **Database:** [Specify MongoDB, MySQL, or other]  
+🔹 **Database:** mongoDB
 
 ---
 
