@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import { CityService } from './city.service';
 import { CreateCityDto, UpdateCityDto } from '../dto/city.dto';
 import { City } from '../entities/city.entity';
+import { NotArrayPipePipe } from 'src/pipes/not-array-pipe/not-array-pipe.pipe';
 // import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 // import { Roles } from '../auth/roles.decorator';
 // import { RolesGuard } from '../auth/roles.guard';
@@ -21,7 +23,12 @@ export class CityController {
   @Post()
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles('it_admin', 'zonal_director')
-  create(@Body() createCityDto: CreateCityDto): Promise<City> {
+  create(
+    @Body(new NotArrayPipePipe()) createCityDto: CreateCityDto,
+  ): Promise<City> {
+    if (Array.isArray(createCityDto)) {
+      throw new BadRequestException();
+    }
     return this.cityService.create(createCityDto);
   }
 
@@ -42,6 +49,9 @@ export class CityController {
     @Param('id') id: string,
     @Body() updateCityDto: UpdateCityDto,
   ): Promise<City> {
+    if (Array.isArray(updateCityDto)) {
+      throw new BadRequestException();
+    }
     return this.cityService.update(+id, updateCityDto);
   }
 

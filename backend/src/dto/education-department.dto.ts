@@ -1,26 +1,28 @@
+import { IsString, IsNotEmpty, IsIn, IsOptional } from 'class-validator';
+
 export class CreateEducationDepartmentDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Department name is required' })
   readonly name: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Department type is required' })
+  @IsIn(['elementary', 'secondary', 'higher', 'special'], {
+    message: 'Type must be elementary, secondary, higher, or special',
+  })
   readonly type: string;
 }
 
 export class UpdateEducationDepartmentDto {
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty({ message: 'Department name cannot be empty' })
   readonly name?: string;
-  readonly type?: string;
-}
 
-// src/dto/school.dto.ts
-export class CreateSchoolDto {
-  readonly name: string;
-  readonly address: string;
-  readonly type: string;
-  readonly cityId: number;
-  readonly departmentId: number;
-}
-
-export class UpdateSchoolDto {
-  readonly name?: string;
-  readonly address?: string;
+  @IsString()
+  @IsOptional()
+  @IsIn(['elementary', 'secondary', 'higher', 'special'], {
+    message: 'Type must be elementary, secondary, higher, or special',
+  })
   readonly type?: string;
-  readonly cityId?: number;
-  readonly departmentId?: number;
 }

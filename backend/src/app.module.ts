@@ -6,6 +6,8 @@ import { UserModule } from './user/user.module';
 import { SchoolModule } from './school/school.module';
 import { EducationDepartmentModule } from './education-department/education-department.module';
 import { DatabaseModule } from 'database/database.module';
+import { AuthService } from './auth/auth.service';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,7 +17,8 @@ import { DatabaseModule } from 'database/database.module';
     UserModule,
     SchoolModule,
     EducationDepartmentModule,
+    AuthModule,
   ],
-  providers: [AppService],
+  providers: [AppService, AuthService],
 })
 export class AppModule {}
