@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Province } from '../entities/province.entity';
 import { CreateProvinceDto, UpdateProvinceDto } from '../dto/province.dto';
+import { ProvinceNotFoundException } from 'src/exceptions/not-found-exceptions/not-found.exceptions';
 
 @Injectable()
 export class ProvinceService {
@@ -27,7 +28,7 @@ export class ProvinceService {
     });
 
     if (!province) {
-      throw new NotFoundException(`Province with ID ${id} not found`);
+      throw new ProvinceNotFoundException(id);
     }
 
     return province;

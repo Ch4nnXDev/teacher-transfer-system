@@ -1,15 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Request,
-  UseGuards,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { LoginUserDto } from 'src/dto/user.dto';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth/jwt-auth.guard';
+import { ArrayInputException } from 'src/exceptions/validation-exceptions/validation.exceptions';
+import { RequestWithUser } from 'src/interfaces/request/request.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -17,16 +11,15 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {
-    const result = await this.authService.login(loginUserDto);
-    if (!result) {
-      throw new UnauthorizedException('Invalid credentials');
+    if (Array.isArray(loginUserDto)) {
+      throw new ArrayInputException();
     }
-    return result;
+    return this.authService.login(loginUserDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req) {
+  getProfile(@Req() req: RequestWithUser) {
     return req.user;
   }
 }

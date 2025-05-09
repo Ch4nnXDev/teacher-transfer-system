@@ -14,6 +14,7 @@ import { Province } from '../entities/province.entity';
 import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
 import { Roles } from '../decorator/roles/roles.decorator';
 import { RolesGuard } from '../guards/roles/roles.guard';
+import { ArrayInputException } from 'src/exceptions/validation-exceptions/validation.exceptions';
 
 @Controller('provinces')
 export class ProvinceController {
@@ -23,6 +24,9 @@ export class ProvinceController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('it_admin', 'zonal_director')
   create(@Body() createProvinceDto: CreateProvinceDto): Promise<Province> {
+    if (Array.isArray(createProvinceDto)) {
+      throw new ArrayInputException();
+    }
     return this.provinceService.create(createProvinceDto);
   }
 
@@ -43,6 +47,9 @@ export class ProvinceController {
     @Param('id') id: string,
     @Body() updateProvinceDto: UpdateProvinceDto,
   ): Promise<Province> {
+    if (Array.isArray(updateProvinceDto)) {
+      throw new ArrayInputException();
+    }
     return this.provinceService.update(+id, updateProvinceDto);
   }
 

@@ -1,12 +1,8 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from 'src/decorator/roles/roles.decorator';
-
-interface RequestWithUser {
-  user: {
-    role: string;
-  };
-}
+import { UnauthorizedAccessException } from 'src/exceptions/auth-exceptions/auth.exceptions';
+import { RequestWithUser } from 'src/interfaces/request/request.interface';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -26,9 +22,17 @@ export class RolesGuard implements CanActivate {
 
     // Check if user and role exist
     if (!request.user || !request.user.role) {
-      return false;
+      throw new UnauthorizedAccessException('Authentication required');
     }
 
-    return requiredRoles.some((role) => request.user.role === role);
+    const hasRole = requiredRoles.some((role) => request.user.role === role);
+
+    if (!hasRole) {
+      throw new UnauthorizedAccessException(
+        `Required role: ${requiredRoles.join(' or ')}`,
+      );
+    }
+
+    return true;
   }
 }

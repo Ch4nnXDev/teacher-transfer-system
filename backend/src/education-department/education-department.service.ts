@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EducationDepartment } from '../entities/education-department.entity';
@@ -6,6 +6,7 @@ import {
   CreateEducationDepartmentDto,
   UpdateEducationDepartmentDto,
 } from '../dto/education-department.dto';
+import { DepartmentNotFoundException } from 'src/exceptions/not-found-exceptions/not-found.exceptions';
 
 @Injectable()
 export class EducationDepartmentService {
@@ -32,9 +33,7 @@ export class EducationDepartmentService {
     });
 
     if (!department) {
-      throw new NotFoundException(
-        `Education Department with ID ${id} not found`,
-      );
+      throw new DepartmentNotFoundException(id);
     }
 
     return department;

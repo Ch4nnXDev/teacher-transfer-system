@@ -7,13 +7,16 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import { User } from '../entities/user.entity';
-import { Roles } from 'src/decorator/roles/roles.decorator';
-import { JwtAuthGuard } from 'src/guards/jwt-auth/jwt-auth.guard';
-import { RolesGuard } from 'src/guards/roles/roles.guard';
+import { Roles } from '../decorator/roles/roles.decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles/roles.guard';
+import { InvalidDataException } from 'src/exceptions/validation-exceptions/validation.exceptions';
+import { RequestWithUser } from 'src/interfaces/request/request.interface';
 
 @Controller('users')
 export class UserController {
@@ -23,6 +26,9 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('it_admin', 'zonal_director', 'principal')
   create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    if (Array.isArray(createUserDto)) {
+      throw new InvalidDataException('Array input is not allowed');
+    }
     return this.userService.create(createUserDto);
   }
 
@@ -50,14 +56,18 @@ export class UserController {
   update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @Req() req: RequestWithUser,
   ): Promise<User> {
-    return this.userService.update(+id, updateUserDto);
+    if (Array.isArray(updateUserDto)) {
+      throw new InvalidDataException('Array input is not allowed');
+    }
+    return this.userService.update(+id, updateUserDto, req.user);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('it_admin')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.userService.remove(+id);
+  remove(@Param('id') id: string, @Req() req: RequestWithUser): Promise<void> {
+    return this.userService.remove(+id, req.user);
   }
 }

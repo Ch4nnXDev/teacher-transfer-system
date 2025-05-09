@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { School } from '../entities/school.entity';
 import { City } from '../entities/city.entity';
 import { EducationDepartment } from '../entities/education-department.entity';
 import { CreateSchoolDto, UpdateSchoolDto } from '../dto/school.dto';
+import {
+  CityNotFoundException,
+  DepartmentNotFoundException,
+  SchoolNotFoundException,
+} from 'src/exceptions/not-found-exceptions/not-found.exceptions';
 
 @Injectable()
 export class SchoolService {
@@ -22,16 +27,14 @@ export class SchoolService {
 
     const city = await this.cityRepository.findOne({ where: { id: cityId } });
     if (!city) {
-      throw new NotFoundException(`City with ID ${cityId} not found`);
+      throw new CityNotFoundException(cityId);
     }
 
     const department = await this.departmentRepository.findOne({
       where: { id: departmentId },
     });
     if (!department) {
-      throw new NotFoundException(
-        `Education Department with ID ${departmentId} not found`,
-      );
+      throw new DepartmentNotFoundException(departmentId);
     }
 
     const school = this.schoolRepository.create({
@@ -56,7 +59,7 @@ export class SchoolService {
     });
 
     if (!school) {
-      throw new NotFoundException(`School with ID ${id} not found`);
+      throw new SchoolNotFoundException(id);
     }
 
     return school;
@@ -70,9 +73,7 @@ export class SchoolService {
         where: { id: updateSchoolDto.cityId },
       });
       if (!city) {
-        throw new NotFoundException(
-          `City with ID ${updateSchoolDto.cityId} not found`,
-        );
+        throw new CityNotFoundException(updateSchoolDto.cityId);
       }
       school.city = city;
     }
@@ -82,9 +83,7 @@ export class SchoolService {
         where: { id: updateSchoolDto.departmentId },
       });
       if (!department) {
-        throw new NotFoundException(
-          `Education Department with ID ${updateSchoolDto.departmentId} not found`,
-        );
+        throw new DepartmentNotFoundException(updateSchoolDto.departmentId);
       }
       school.department = department;
     }

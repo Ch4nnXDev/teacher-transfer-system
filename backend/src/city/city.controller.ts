@@ -6,16 +6,15 @@ import {
   Patch,
   Param,
   Delete,
-  BadRequestException,
   UseGuards,
 } from '@nestjs/common';
 import { CityService } from './city.service';
 import { CreateCityDto, UpdateCityDto } from '../dto/city.dto';
 import { City } from '../entities/city.entity';
-import { NotArrayPipePipe } from 'src/pipes/not-array-pipe/not-array-pipe.pipe';
 import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
 import { Roles } from '../decorator/roles/roles.decorator';
 import { RolesGuard } from '../guards/roles/roles.guard';
+import { ArrayInputException } from 'src/exceptions/validation-exceptions/validation.exceptions';
 
 @Controller('cities')
 export class CityController {
@@ -24,11 +23,9 @@ export class CityController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('it_admin', 'zonal_director')
-  create(
-    @Body(new NotArrayPipePipe()) createCityDto: CreateCityDto,
-  ): Promise<City> {
+  create(@Body() createCityDto: CreateCityDto): Promise<City> {
     if (Array.isArray(createCityDto)) {
-      throw new BadRequestException();
+      throw new ArrayInputException();
     }
     return this.cityService.create(createCityDto);
   }
@@ -51,7 +48,7 @@ export class CityController {
     @Body() updateCityDto: UpdateCityDto,
   ): Promise<City> {
     if (Array.isArray(updateCityDto)) {
-      throw new BadRequestException();
+      throw new ArrayInputException();
     }
     return this.cityService.update(+id, updateCityDto);
   }

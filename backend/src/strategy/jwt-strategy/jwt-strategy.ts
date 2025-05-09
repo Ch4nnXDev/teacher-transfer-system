@@ -2,6 +2,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { JwtPayload } from 'src/interfaces/jwt/jwt.interface';
+import { InvalidTokenException } from 'src/exceptions/auth-exceptions/auth.exceptions';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -18,6 +19,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     email: string;
     role: string;
   } {
+    if (!payload || !payload.sub || !payload.email || !payload.role) {
+      throw new InvalidTokenException();
+    }
+
     return {
       userId: payload.sub,
       email: payload.email,

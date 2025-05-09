@@ -14,6 +14,7 @@ import { School } from '../entities/school.entity';
 import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
 import { Roles } from '../decorator/roles/roles.decorator';
 import { RolesGuard } from '../guards/roles/roles.guard';
+import { ArrayInputException } from 'src/exceptions/validation-exceptions/validation.exceptions';
 
 @Controller('schools')
 export class SchoolController {
@@ -23,6 +24,9 @@ export class SchoolController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('it_admin', 'zonal_director')
   create(@Body() createSchoolDto: CreateSchoolDto): Promise<School> {
+    if (Array.isArray(createSchoolDto)) {
+      throw new ArrayInputException();
+    }
     return this.schoolService.create(createSchoolDto);
   }
 
@@ -43,6 +47,9 @@ export class SchoolController {
     @Param('id') id: string,
     @Body() updateSchoolDto: UpdateSchoolDto,
   ): Promise<School> {
+    if (Array.isArray(updateSchoolDto)) {
+      throw new ArrayInputException();
+    }
     return this.schoolService.update(+id, updateSchoolDto);
   }
 

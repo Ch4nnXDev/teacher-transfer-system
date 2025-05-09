@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { City } from '../entities/city.entity';
 import { Province } from '../entities/province.entity';
 import { CreateCityDto, UpdateCityDto } from '../dto/city.dto';
+import {
+  ProvinceNotFoundException,
+  CityNotFoundException,
+} from 'src/exceptions/not-found-exceptions/not-found.exceptions';
 
 @Injectable()
 export class CityService {
@@ -20,8 +24,9 @@ export class CityService {
     const province = await this.provinceRepository.findOne({
       where: { id: provinceId },
     });
+
     if (!province) {
-      throw new NotFoundException(`Province with ID ${provinceId} not found`);
+      throw new ProvinceNotFoundException(provinceId);
     }
 
     const city = this.cityRepository.create({
@@ -43,7 +48,7 @@ export class CityService {
     });
 
     if (!city) {
-      throw new NotFoundException(`City with ID ${id} not found`);
+      throw new CityNotFoundException(id);
     }
 
     return city;
@@ -56,11 +61,11 @@ export class CityService {
       const province = await this.provinceRepository.findOne({
         where: { id: updateCityDto.provinceId },
       });
+
       if (!province) {
-        throw new NotFoundException(
-          `Province with ID ${updateCityDto.provinceId} not found`,
-        );
+        throw new ProvinceNotFoundException(updateCityDto.provinceId);
       }
+
       city.province = province;
     }
 

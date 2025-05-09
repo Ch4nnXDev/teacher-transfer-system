@@ -17,6 +17,7 @@ import { EducationDepartment } from '../entities/education-department.entity';
 import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
 import { Roles } from '../decorator/roles/roles.decorator';
 import { RolesGuard } from '../guards/roles/roles.guard';
+import { ArrayInputException } from 'src/exceptions/validation-exceptions/validation.exceptions';
 
 @Controller('education-departments')
 export class EducationDepartmentController {
@@ -28,6 +29,9 @@ export class EducationDepartmentController {
   create(
     @Body() createDepartmentDto: CreateEducationDepartmentDto,
   ): Promise<EducationDepartment> {
+    if (Array.isArray(createDepartmentDto)) {
+      throw new ArrayInputException();
+    }
     return this.departmentService.create(createDepartmentDto);
   }
 
@@ -48,6 +52,9 @@ export class EducationDepartmentController {
     @Param('id') id: string,
     @Body() updateDepartmentDto: UpdateEducationDepartmentDto,
   ): Promise<EducationDepartment> {
+    if (Array.isArray(updateDepartmentDto)) {
+      throw new ArrayInputException();
+    }
     return this.departmentService.update(+id, updateDepartmentDto);
   }
 

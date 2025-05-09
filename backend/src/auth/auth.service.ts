@@ -6,6 +6,10 @@ import { LoginUserDto } from 'src/dto/user.dto';
 import { User } from 'src/entities/user.entity';
 import { AuthResponse } from 'src/interfaces/auth/auth.interface';
 import { JwtPayload } from 'src/interfaces/jwt/jwt.interface';
+import {
+  InvalidCredentialsException,
+  InvalidTokenException,
+} from 'src/exceptions/auth-exceptions/auth.exceptions';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +38,7 @@ export class AuthService {
     }
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<AuthResponse | null> {
+  async login(loginUserDto: LoginUserDto): Promise<AuthResponse> {
     // First validate the user
     const user = await this.validateUser(
       loginUserDto.email,
@@ -42,12 +46,12 @@ export class AuthService {
     );
 
     if (!user) {
-      return null; // This will trigger UnauthorizedException in the Guard
+      throw new InvalidCredentialsException();
     }
 
     // Ensure all required properties exist
     if (!user.email || !user.id || !user.role || !user.name) {
-      return null;
+      throw new InvalidCredentialsException();
     }
 
     // Generate JWT payload
@@ -69,11 +73,11 @@ export class AuthService {
     };
   }
 
-  verifyToken(token: string): JwtPayload | null {
+  verifyToken(token: string): JwtPayload {
     try {
       return this.jwtService.verify<JwtPayload>(token);
     } catch {
-      return null;
+      throw new InvalidTokenException();
     }
   }
 }
