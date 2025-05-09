@@ -4,23 +4,8 @@ import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from 'src/dto/user.dto';
 import { User } from 'src/entities/user.entity';
-
-// Define interfaces for improved type safety
-interface JwtPayload {
-  email: string;
-  sub: number;
-  role: string;
-}
-
-interface AuthResponse {
-  user: {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-  };
-  token: string;
-}
+import { AuthResponse } from 'src/interfaces/auth/auth.interface';
+import { JwtPayload } from 'src/interfaces/jwt/jwt.interface';
 
 @Injectable()
 export class AuthService {
@@ -39,7 +24,8 @@ export class AuthService {
 
       if (user && isPasswordValid) {
         // Don't return the password in the user object
-        const { password, ...result } = user;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _, ...result } = user;
         return result;
       }
       return null;
@@ -57,6 +43,11 @@ export class AuthService {
 
     if (!user) {
       return null; // This will trigger UnauthorizedException in the Guard
+    }
+
+    // Ensure all required properties exist
+    if (!user.email || !user.id || !user.role || !user.name) {
+      return null;
     }
 
     // Generate JWT payload

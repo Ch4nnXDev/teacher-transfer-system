@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './filters/http-exception/http-exception.filter';
+import { ResponseInterceptor } from './interceptors/response/response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +19,11 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
+  app.useGlobalInterceptors(new ResponseInterceptor());
+
+  // Global exception filter
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // Swagger documentation
   const config = new DocumentBuilder()
