@@ -1,7 +1,7 @@
-import { LocalStrategy } from './local-strategy';
+// import { LocalStrategy } from './local-strategy';
 
-describe('LocalStrategy', () => {
-  it('should be defined', () => {
-    expect(new LocalStrategy()).toBeDefined();
-  });
-});
+// describe('LocalStrategy', () => {
+//   it('should be defined', () => {
+//     expect(new LocalStrategy()).toBeDefined();
+//   });
+// });

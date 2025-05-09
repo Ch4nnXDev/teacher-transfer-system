@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto, LoginUserDto } from '../dto/user.dto';
+import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import { User } from '../entities/user.entity';
 import { Roles } from 'src/decorator/roles/roles.decorator';
 import { JwtAuthGuard } from 'src/guards/jwt-auth/jwt-auth.guard';
@@ -24,13 +24,6 @@ export class UserController {
   @Roles('it_admin', 'zonal_director', 'principal')
   create(@Body() createUserDto: CreateUserDto): Promise<User> {
     return this.userService.create(createUserDto);
-  }
-
-  @Post('login')
-  login(
-    @Body() loginUserDto: LoginUserDto,
-  ): Promise<{ user: Partial<User>; token: string }> {
-    return this.userService.login(loginUserDto);
   }
 
   @Get()

@@ -2,14 +2,13 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { School } from '../entities/school.entity';
-import { CreateUserDto, UpdateUserDto, LoginUserDto } from '../dto/user.dto';
+import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 
 @Injectable()
 export class UserService {
@@ -108,41 +107,16 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { email } });
-
-    if (!user) {
-      throw new NotFoundException(`User with email ${email} not found`);
-    }
-
-    return user;
-  }
-
-  async login(
-    loginUserDto: LoginUserDto,
-  ): Promise<{ user: Partial<User>; token: string }> {
-    const { email, password } = loginUserDto;
-
     const user = await this.userRepository.findOne({
       where: { email },
       select: ['id', 'name', 'email', 'password', 'role'],
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new NotFoundException(`User with email ${email} not found`);
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    // In a real application, you would generate a JWT token here
-    const token = 'dummy-token';
-
-    const { password: _, ...result } = user;
-
-    return { user: result, token };
+    return user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
