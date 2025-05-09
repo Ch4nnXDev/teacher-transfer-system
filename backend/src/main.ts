@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -36,4 +33,9 @@ async function bootstrap() {
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 
-bootstrap();
+bootstrap()
+  .then(() => console.log('Application started successfully'))
+  .catch((error) => {
+    console.error('Application failed to start', error);
+    process.exit(1);
+  });

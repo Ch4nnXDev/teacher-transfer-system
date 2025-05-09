@@ -6,21 +6,22 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ProvinceService } from './province.service';
 import { CreateProvinceDto, UpdateProvinceDto } from '../dto/province.dto';
 import { Province } from '../entities/province.entity';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-// import { Roles } from '../auth/roles.decorator';
-// import { RolesGuard } from '../auth/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
+import { Roles } from '../decorator/roles/roles.decorator';
+import { RolesGuard } from '../guards/roles/roles.guard';
 
 @Controller('provinces')
 export class ProvinceController {
   constructor(private readonly provinceService: ProvinceService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin', 'zonal_director')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin', 'zonal_director')
   create(@Body() createProvinceDto: CreateProvinceDto): Promise<Province> {
     return this.provinceService.create(createProvinceDto);
   }
@@ -36,8 +37,8 @@ export class ProvinceController {
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin', 'zonal_director')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin', 'zonal_director')
   update(
     @Param('id') id: string,
     @Body() updateProvinceDto: UpdateProvinceDto,
@@ -46,8 +47,8 @@ export class ProvinceController {
   }
 
   @Delete(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin')
   remove(@Param('id') id: string): Promise<void> {
     return this.provinceService.remove(+id);
   }

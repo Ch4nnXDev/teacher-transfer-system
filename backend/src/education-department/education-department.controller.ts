@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { EducationDepartmentService } from './education-department.service';
 import {
@@ -13,17 +14,17 @@ import {
   UpdateEducationDepartmentDto,
 } from '../dto/education-department.dto';
 import { EducationDepartment } from '../entities/education-department.entity';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-// import { Roles } from '../auth/roles.decorator';
-// import { RolesGuard } from '../auth/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
+import { Roles } from '../decorator/roles/roles.decorator';
+import { RolesGuard } from '../guards/roles/roles.guard';
 
 @Controller('education-departments')
 export class EducationDepartmentController {
   constructor(private readonly departmentService: EducationDepartmentService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin', 'zonal_director')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin', 'zonal_director')
   create(
     @Body() createDepartmentDto: CreateEducationDepartmentDto,
   ): Promise<EducationDepartment> {
@@ -41,8 +42,8 @@ export class EducationDepartmentController {
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin', 'zonal_director')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin', 'zonal_director')
   update(
     @Param('id') id: string,
     @Body() updateDepartmentDto: UpdateEducationDepartmentDto,
@@ -51,8 +52,8 @@ export class EducationDepartmentController {
   }
 
   @Delete(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin')
   remove(@Param('id') id: string): Promise<void> {
     return this.departmentService.remove(+id);
   }

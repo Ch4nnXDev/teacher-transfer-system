@@ -6,21 +6,22 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto, UpdateSchoolDto } from '../dto/school.dto';
 import { School } from '../entities/school.entity';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-// import { Roles } from '../auth/roles.decorator';
-// import { RolesGuard } from '../auth/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
+import { Roles } from '../decorator/roles/roles.decorator';
+import { RolesGuard } from '../guards/roles/roles.guard';
 
 @Controller('schools')
 export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin', 'zonal_director')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin', 'zonal_director')
   create(@Body() createSchoolDto: CreateSchoolDto): Promise<School> {
     return this.schoolService.create(createSchoolDto);
   }
@@ -36,8 +37,8 @@ export class SchoolController {
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin', 'zonal_director', 'principal')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin', 'zonal_director', 'principal')
   update(
     @Param('id') id: string,
     @Body() updateSchoolDto: UpdateSchoolDto,
@@ -46,8 +47,8 @@ export class SchoolController {
   }
 
   @Delete(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin')
   remove(@Param('id') id: string): Promise<void> {
     return this.schoolService.remove(+id);
   }

@@ -7,22 +7,23 @@ import {
   Param,
   Delete,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { CityService } from './city.service';
 import { CreateCityDto, UpdateCityDto } from '../dto/city.dto';
 import { City } from '../entities/city.entity';
 import { NotArrayPipePipe } from 'src/pipes/not-array-pipe/not-array-pipe.pipe';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-// import { Roles } from '../auth/roles.decorator';
-// import { RolesGuard } from '../auth/roles.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
+import { Roles } from '../decorator/roles/roles.decorator';
+import { RolesGuard } from '../guards/roles/roles.guard';
 
 @Controller('cities')
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 
   @Post()
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin', 'zonal_director')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin', 'zonal_director')
   create(
     @Body(new NotArrayPipePipe()) createCityDto: CreateCityDto,
   ): Promise<City> {
@@ -43,8 +44,8 @@ export class CityController {
   }
 
   @Patch(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin', 'zonal_director')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin', 'zonal_director')
   update(
     @Param('id') id: string,
     @Body() updateCityDto: UpdateCityDto,
@@ -56,8 +57,8 @@ export class CityController {
   }
 
   @Delete(':id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('it_admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('it_admin')
   remove(@Param('id') id: string): Promise<void> {
     return this.cityService.remove(+id);
   }
