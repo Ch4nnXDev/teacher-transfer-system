@@ -1,23 +1,30 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
-import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
-import { LocalStrategy } from 'src/strategy/local-strategy/local-strategy';
-import { JwtStrategy } from 'src/strategy/jwt-strategy/jwt-strategy';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { UserModule } from '../user/user.module';
+import { PapGuard } from 'src/guards/pap.guard';
+import { JwtStrategy } from 'src/strategy/jwt-strategy';
 
 @Module({
   imports: [
     UserModule,
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key', // Use environment variable in production
-      signOptions: { expiresIn: '24h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '24h'),
+        },
+      }),
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, PapGuard],
+  exports: [AuthService, PapGuard, JwtModule],
 })
 export class AuthModule {}

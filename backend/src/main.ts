@@ -1,14 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './filters/http-exception/http-exception.filter';
 import { ResponseInterceptor } from './interceptors/response/response.interceptor';
-import { DatabaseExceptionFilter } from './filters/database-exception/database-exception.filter';
-import { UnhandledExceptionFilter } from './filters/unhandled-exception/unhandled-exception.filter';
+import { GlobalExceptionFilter } from './filters/global-exception.filter';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   // Enable CORS
   app.enableCors();
@@ -19,31 +19,24 @@ async function bootstrap() {
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
 
+  // Global interceptors
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  // Global exception filter
-  app.useGlobalFilters(
-    new UnhandledExceptionFilter(),
-    new DatabaseExceptionFilter(),
-    new HttpExceptionFilter(),
-  );
+  // Global exception filters
+  app.useGlobalFilters(new GlobalExceptionFilter(), new HttpExceptionFilter());
 
-  // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('Sri Lankan School Management API')
-    .setDescription('API for managing teachers and schools in Sri Lanka')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  // Get port from environment variables
+  const port = configService.get<number>('PORT', 3000);
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
-  await app.listen(3000);
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
+  console.log(`PAP enabled: ${configService.get('PAP_ENABLED')}`);
 }
 
 bootstrap()

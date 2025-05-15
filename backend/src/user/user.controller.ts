@@ -7,67 +7,91 @@ import {
   Param,
   Delete,
   UseGuards,
-  Req,
+  Request,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import { User } from '../entities/user.entity';
 import { Roles } from '../decorator/roles/roles.decorator';
-import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
-import { RolesGuard } from '../guards/roles/roles.guard';
-import { InvalidDataException } from 'src/exceptions/validation-exceptions/validation.exceptions';
-import { RequestWithUser } from 'src/interfaces/request/request.interface';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { AuthenticatedRequest } from 'src/interfaces/auth.interface';
+import { UserRole } from 'src/interfaces/entity.interface';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin', 'zonal_director', 'principal')
-  create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    if (Array.isArray(createUserDto)) {
-      throw new InvalidDataException('Array input is not allowed');
-    }
-    return this.userService.create(createUserDto);
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR, UserRole.PRINCIPAL)
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<User> {
+    return this.userService.create(createUserDto, req.user);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @Roles(
+    UserRole.IT_ADMIN,
+    UserRole.ZONAL_DIRECTOR,
+    UserRole.PRINCIPAL,
+    UserRole.SCHOOL_ADMIN,
+  )
   findAll(): Promise<User[]> {
     return this.userService.findAll();
   }
 
   @Get('role/:role')
-  @UseGuards(JwtAuthGuard)
-  findByRole(@Param('role') role: string): Promise<User[]> {
+  @Roles(
+    UserRole.IT_ADMIN,
+    UserRole.ZONAL_DIRECTOR,
+    UserRole.PRINCIPAL,
+    UserRole.SCHOOL_ADMIN,
+  )
+  findByRole(@Param('role') role: UserRole): Promise<User[]> {
     return this.userService.findByRole(role);
   }
 
+  @Get('eligible-for-transfer')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
+  findTeachersEligibleForTransfer(): Promise<User[]> {
+    return this.userService.findTeachersEligibleForTransfer();
+  }
+
+  @Get('profile')
+  getProfile(@Request() req: AuthenticatedRequest): Promise<User> {
+    return this.userService.findOne(req.user.userId);
+  }
+
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string): Promise<User> {
-    return this.userService.findOne(+id);
+  @Roles(
+    UserRole.IT_ADMIN,
+    UserRole.ZONAL_DIRECTOR,
+    UserRole.PRINCIPAL,
+    UserRole.SCHOOL_ADMIN,
+    UserRole.TEACHER,
+    UserRole.STAFF,
+  )
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
+    return this.userService.findOne(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin', 'zonal_director', 'principal')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR, UserRole.PRINCIPAL)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
-    @Req() req: RequestWithUser,
+    @Request() req: AuthenticatedRequest,
   ): Promise<User> {
-    if (Array.isArray(updateUserDto)) {
-      throw new InvalidDataException('Array input is not allowed');
-    }
-    return this.userService.update(+id, updateUserDto, req.user);
+    return this.userService.update(id, updateUserDto, req.user);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin')
-  remove(@Param('id') id: string, @Req() req: RequestWithUser): Promise<void> {
-    return this.userService.remove(+id, req.user);
+  @Roles(UserRole.IT_ADMIN)
+  remove(@Param('id', ParseIntPipe) id: string): Promise<void> {
+    return this.userService.remove(+id);
   }
 }

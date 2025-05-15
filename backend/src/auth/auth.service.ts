@@ -2,14 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
-import { LoginUserDto } from 'src/dto/user.dto';
-import { User } from 'src/entities/user.entity';
-import { AuthResponse } from 'src/interfaces/auth/auth.interface';
-import { JwtPayload } from 'src/interfaces/jwt/jwt.interface';
-import {
-  InvalidCredentialsException,
-  InvalidTokenException,
-} from 'src/exceptions/auth-exceptions/auth.exceptions';
+import { LoginUserDto } from '../dto/auth.dto';
+import { User } from '../entities/user.entity';
+import { JwtPayload } from '../interfaces/jwt.interface';
+import { AuthResponse } from '../interfaces/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -24,11 +20,15 @@ export class AuthService {
   ): Promise<Partial<User> | null> {
     try {
       const user = await this.userService.findByEmail(email);
+
+      if (!user.isActive) {
+        return null; // User is inactive
+      }
+
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (user && isPasswordValid) {
         // Don't return the password in the user object
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password: _, ...result } = user;
         return result;
       }
@@ -38,7 +38,7 @@ export class AuthService {
     }
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<AuthResponse> {
+  async login(loginUserDto: LoginUserDto): Promise<AuthResponse | null> {
     // First validate the user
     const user = await this.validateUser(
       loginUserDto.email,
@@ -46,12 +46,18 @@ export class AuthService {
     );
 
     if (!user) {
-      throw new InvalidCredentialsException();
+      return null; // This will trigger UnauthorizedException in the Guard
     }
 
     // Ensure all required properties exist
-    if (!user.email || !user.id || !user.role || !user.name) {
-      throw new InvalidCredentialsException();
+    if (
+      !user.email ||
+      !user.id ||
+      !user.role ||
+      !user.firstName ||
+      !user.lastName
+    ) {
+      return null;
     }
 
     // Generate JWT payload
@@ -65,7 +71,8 @@ export class AuthService {
     return {
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
       },
@@ -73,11 +80,11 @@ export class AuthService {
     };
   }
 
-  verifyToken(token: string): JwtPayload {
+  verifyToken(token: string): JwtPayload | null {
     try {
       return this.jwtService.verify<JwtPayload>(token);
     } catch {
-      throw new InvalidTokenException();
+      return null;
     }
   }
 }

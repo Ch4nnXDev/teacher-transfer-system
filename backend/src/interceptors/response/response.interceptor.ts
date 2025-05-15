@@ -8,7 +8,7 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Response } from 'express';
-import { BaseResponse } from 'src/interfaces/response/response.interface';
+import { BaseResponse } from '../../interfaces/response.interface';
 
 @Injectable()
 export class ResponseInterceptor<T>

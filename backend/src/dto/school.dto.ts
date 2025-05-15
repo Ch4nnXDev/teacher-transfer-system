@@ -3,8 +3,9 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsIn,
   IsPositive,
+  IsEmail,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateSchoolDto {
@@ -18,10 +19,28 @@ export class CreateSchoolDto {
 
   @IsString()
   @IsNotEmpty({ message: 'School type is required' })
-  @IsIn(['public', 'private', 'charter'], {
-    message: 'Type must be public, private, or charter',
-  })
   readonly type: string;
+
+  @IsNumber()
+  @IsOptional()
+  readonly latitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  readonly longitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @IsPositive({ message: 'Student count must be positive' })
+  readonly studentCount?: number;
+
+  @IsString()
+  @IsOptional()
+  readonly phoneNumber?: string;
+
+  @IsEmail()
+  @IsOptional()
+  readonly email?: string;
 
   @IsNumber()
   @IsPositive({ message: 'City ID must be a positive number' })
@@ -47,10 +66,32 @@ export class UpdateSchoolDto {
 
   @IsString()
   @IsOptional()
-  @IsIn(['public', 'private', 'charter'], {
-    message: 'Type must be public, private, or charter',
-  })
   readonly type?: string;
+
+  @IsNumber()
+  @IsOptional()
+  readonly latitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  readonly longitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @IsPositive({ message: 'Student count must be positive' })
+  readonly studentCount?: number;
+
+  @IsString()
+  @IsOptional()
+  readonly phoneNumber?: string;
+
+  @IsEmail()
+  @IsOptional()
+  readonly email?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  readonly isActive?: boolean;
 
   @IsNumber()
   @IsOptional()

@@ -1,5 +1,5 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
-import { ArrayInputException } from 'src/exceptions/validation-exceptions/validation.exceptions';
+import { ArrayInputException } from 'src/exceptions/validation.exceptions';
 
 @Injectable()
 export class NotArrayPipePipe implements PipeTransform {
