@@ -3,18 +3,39 @@ import {
   IsNotEmpty,
   IsEmail,
   IsOptional,
-  IsIn,
+  IsEnum,
   IsNumber,
-  MinLength,
+  IsDateString,
+  IsBoolean,
   IsPositive,
-  IsISO8601,
+  MinLength,
+  Matches,
+  IsNotIn,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { UserRole } from '../interfaces/entity.interface';
 
+// User DTOs
 export class CreateUserDto {
   @IsString()
-  @IsNotEmpty({ message: 'Name is required' })
-  readonly name: string;
+  @IsNotEmpty({ message: 'NIC is required' })
+  @Matches(/^[0-9]{9}[vVxX]$|^[0-9]{12}$/, { message: 'Invalid NIC format' })
+  readonly nic: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'First name is required' })
+  readonly firstName: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Last name is required' })
+  readonly lastName: string;
+
+  @IsNumber()
+  @IsPositive({ message: 'Age must be a positive number' })
+  readonly age: number;
+
+  @IsDateString()
+  @IsNotEmpty({ message: 'Birth date is required' })
+  readonly birth: string;
 
   @IsEmail({}, { message: 'Please provide a valid email' })
   @IsNotEmpty({ message: 'Email is required' })
@@ -25,12 +46,9 @@ export class CreateUserDto {
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   readonly password: string;
 
-  @IsString()
-  @IsNotEmpty({ message: 'Role is required' })
-  @IsIn(['admin', 'teacher', 'principal', 'staff'], {
-    message: 'Role must be admin, teacher, principal, or staff',
-  })
-  readonly role: string;
+  @IsEnum(UserRole, { message: 'Invalid role' })
+  @IsNotIn([UserRole.PAP], { message: 'PAP role cannot be assigned to users' })
+  readonly role: UserRole;
 
   @IsString()
   @IsOptional()
@@ -40,22 +58,51 @@ export class CreateUserDto {
   @IsOptional()
   readonly qualifications?: string;
 
-  @IsISO8601()
+  @IsDateString()
   @IsOptional()
-  @Type(() => Date)
-  readonly joiningDate?: Date;
+  readonly joiningDate?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly address?: string;
+
+  @IsNumber()
+  @IsOptional()
+  readonly latitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  readonly longitude?: number;
+
+  @IsString()
+  @IsOptional()
+  readonly phoneNumber?: string;
 
   @IsNumber()
   @IsOptional()
   @IsPositive({ message: 'School ID must be a positive number' })
-  readonly schoolId?: number;
+  readonly currentSchoolId?: number;
 }
 
 export class UpdateUserDto {
   @IsString()
   @IsOptional()
-  @IsNotEmpty({ message: 'Name cannot be empty' })
-  readonly name?: string;
+  @IsNotEmpty({ message: 'First name cannot be empty' })
+  readonly firstName?: string;
+
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty({ message: 'Last name cannot be empty' })
+  readonly lastName?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @IsPositive({ message: 'Age must be a positive number' })
+  readonly age?: number;
+
+  @IsDateString()
+  @IsOptional()
+  readonly birth?: string;
 
   @IsEmail({}, { message: 'Please provide a valid email' })
   @IsOptional()
@@ -66,12 +113,10 @@ export class UpdateUserDto {
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   readonly password?: string;
 
-  @IsString()
+  @IsEnum(UserRole, { message: 'Invalid role' })
+  @IsNotIn([UserRole.PAP], { message: 'PAP role cannot be assigned to users' })
   @IsOptional()
-  @IsIn(['admin', 'teacher', 'principal', 'staff'], {
-    message: 'Role must be admin, teacher, principal, or staff',
-  })
-  readonly role?: string;
+  readonly role?: UserRole;
 
   @IsString()
   @IsOptional()
@@ -81,23 +126,32 @@ export class UpdateUserDto {
   @IsOptional()
   readonly qualifications?: string;
 
-  @IsISO8601()
+  @IsDateString()
   @IsOptional()
-  @Type(() => Date)
-  readonly joiningDate?: Date;
+  readonly joiningDate?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly address?: string;
+
+  @IsNumber()
+  @IsOptional()
+  readonly latitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  readonly longitude?: number;
+
+  @IsString()
+  @IsOptional()
+  readonly phoneNumber?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  readonly isActive?: boolean;
 
   @IsNumber()
   @IsOptional()
   @IsPositive({ message: 'School ID must be a positive number' })
-  readonly schoolId?: number;
-}
-
-export class LoginUserDto {
-  @IsEmail({}, { message: 'Please provide a valid email' })
-  @IsNotEmpty({ message: 'Email is required' })
-  readonly email: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Password is required' })
-  readonly password: string;
+  readonly currentSchoolId?: number;
 }

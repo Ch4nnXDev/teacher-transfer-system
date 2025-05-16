@@ -8,27 +8,30 @@ import {
   Delete,
   BadRequestException,
   UseGuards,
+  ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { CityService } from './city.service';
 import { CreateCityDto, UpdateCityDto } from '../dto/city.dto';
 import { City } from '../entities/city.entity';
-import { NotArrayPipePipe } from 'src/pipes/not-array-pipe/not-array-pipe.pipe';
-import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
+import { NotArrayPipePipe } from '../pipes/not-array-pipe/not-array-pipe.pipe';
 import { Roles } from '../decorator/roles/roles.decorator';
-import { RolesGuard } from '../guards/roles/roles.guard';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { UserRole } from 'src/interfaces/entity.interface';
 
 @Controller('cities')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin', 'zonal_director')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
   create(
     @Body(new NotArrayPipePipe()) createCityDto: CreateCityDto,
   ): Promise<City> {
     if (Array.isArray(createCityDto)) {
-      throw new BadRequestException();
+      throw new BadRequestException('Array input is not allowed');
     }
     return this.cityService.create(createCityDto);
   }
@@ -38,28 +41,60 @@ export class CityController {
     return this.cityService.findAll();
   }
 
+  @Get('search')
+  findByName(@Query('name') name: string): Promise<City | null> {
+    return this.cityService.findByName(name);
+  }
+
+  @Get('by-province/:provinceId')
+  findByProvince(
+    @Param('provinceId', ParseIntPipe) provinceId: number,
+  ): Promise<City[]> {
+    return this.cityService.findByProvince(provinceId);
+  }
+
+  @Get('needing-teachers')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
+  findCitiesNeedingTeachers(
+    @Query('ratio') ratio: string = '30',
+  ): Promise<City[]> {
+    const ratioThreshold = parseFloat(ratio);
+    return this.cityService.findCitiesWithSchoolsNeedingTeachers(
+      ratioThreshold,
+    );
+  }
+
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<City> {
-    return this.cityService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<City> {
+    return this.cityService.findOne(id);
+  }
+
+  @Get(':id/statistics')
+  @Roles(
+    UserRole.IT_ADMIN,
+    UserRole.ZONAL_DIRECTOR,
+    UserRole.PRINCIPAL,
+    UserRole.SCHOOL_ADMIN,
+  )
+  getStatistics(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    return this.cityService.getCityStatistics(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin', 'zonal_director')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateCityDto: UpdateCityDto,
   ): Promise<City> {
     if (Array.isArray(updateCityDto)) {
-      throw new BadRequestException();
+      throw new BadRequestException('Array input is not allowed');
     }
-    return this.cityService.update(+id, updateCityDto);
+    return this.cityService.update(id, updateCityDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.cityService.remove(+id);
+  @Roles(UserRole.IT_ADMIN)
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.cityService.remove(id);
   }
 }

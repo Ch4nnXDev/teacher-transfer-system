@@ -5,11 +5,21 @@ import { SchoolService } from './school.service';
 import { School } from '../entities/school.entity';
 import { City } from '../entities/city.entity';
 import { EducationDepartment } from '../entities/education-department.entity';
+import { User } from '../entities/user.entity';
+import { TeacherAssignment } from '../entities/teacher-assignment.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([School, City, EducationDepartment])],
+  imports: [
+    TypeOrmModule.forFeature([
+      School,
+      City,
+      EducationDepartment,
+      User,
+      TeacherAssignment,
+    ]),
+  ],
   controllers: [SchoolController],
   providers: [SchoolService],
-  exports: [SchoolService],
+  exports: [SchoolService, TypeOrmModule],
 })
 export class SchoolModule {}

@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { EducationDepartmentService } from './education-department.service';
 import {
@@ -14,17 +16,18 @@ import {
   UpdateEducationDepartmentDto,
 } from '../dto/education-department.dto';
 import { EducationDepartment } from '../entities/education-department.entity';
-import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
 import { Roles } from '../decorator/roles/roles.decorator';
-import { RolesGuard } from '../guards/roles/roles.guard';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { UserRole } from 'src/interfaces/entity.interface';
 
 @Controller('education-departments')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class EducationDepartmentController {
   constructor(private readonly departmentService: EducationDepartmentService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin', 'zonal_director')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
   create(
     @Body() createDepartmentDto: CreateEducationDepartmentDto,
   ): Promise<EducationDepartment> {
@@ -36,25 +39,61 @@ export class EducationDepartmentController {
     return this.departmentService.findAll();
   }
 
+  @Get('search')
+  findByName(@Query('name') name: string): Promise<EducationDepartment | null> {
+    return this.departmentService.findByName(name);
+  }
+
+  @Get('by-type/:type')
+  findByType(@Param('type') type: string): Promise<EducationDepartment[]> {
+    return this.departmentService.findByType(type);
+  }
+
+  @Get('needing-teachers')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
+  findDepartmentsNeedingTeachers(
+    @Query('ratio') ratio: string = '30',
+  ): Promise<EducationDepartment[]> {
+    const ratioThreshold = parseFloat(ratio);
+    return this.departmentService.findDepartmentsWithSchoolsNeedingTeachers(
+      ratioThreshold,
+    );
+  }
+
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<EducationDepartment> {
-    return this.departmentService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<EducationDepartment> {
+    return this.departmentService.findOne(id);
+  }
+
+  @Get(':id/statistics')
+  @Roles(
+    UserRole.IT_ADMIN,
+    UserRole.ZONAL_DIRECTOR,
+    UserRole.PRINCIPAL,
+    UserRole.SCHOOL_ADMIN,
+  )
+  getStatistics(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    return this.departmentService.getDepartmentStatistics(id);
+  }
+
+  @Get(':id/transfer-statistics')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
+  getTransferStatistics(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    return this.departmentService.getTeacherTransferStatistics(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin', 'zonal_director')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateDepartmentDto: UpdateEducationDepartmentDto,
   ): Promise<EducationDepartment> {
-    return this.departmentService.update(+id, updateDepartmentDto);
+    return this.departmentService.update(id, updateDepartmentDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.departmentService.remove(+id);
+  @Roles(UserRole.IT_ADMIN)
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.departmentService.remove(id);
   }
 }

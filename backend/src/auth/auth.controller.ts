@@ -7,9 +7,10 @@ import {
   UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
-import { LoginUserDto } from 'src/dto/user.dto';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from 'src/guards/jwt-auth/jwt-auth.guard';
+import { LoginUserDto } from 'src/dto/auth.dto';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from 'src/interfaces/auth.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -26,7 +27,16 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req) {
+  getProfile(@Request() req: AuthenticatedRequest) {
     return req.user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('verify-token')
+  verifyToken(@Request() req: AuthenticatedRequest) {
+    return {
+      valid: true,
+      user: req.user,
+    };
   }
 }

@@ -7,21 +7,24 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ProvinceService } from './province.service';
 import { CreateProvinceDto, UpdateProvinceDto } from '../dto/province.dto';
 import { Province } from '../entities/province.entity';
-import { JwtAuthGuard } from '../guards/jwt-auth/jwt-auth.guard';
 import { Roles } from '../decorator/roles/roles.decorator';
-import { RolesGuard } from '../guards/roles/roles.guard';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { UserRole } from 'src/interfaces/entity.interface';
 
 @Controller('provinces')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ProvinceController {
   constructor(private readonly provinceService: ProvinceService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin', 'zonal_director')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
   create(@Body() createProvinceDto: CreateProvinceDto): Promise<Province> {
     return this.provinceService.create(createProvinceDto);
   }
@@ -31,25 +34,39 @@ export class ProvinceController {
     return this.provinceService.findAll();
   }
 
+  @Get('search')
+  findByName(@Query('name') name: string): Promise<Province | null> {
+    return this.provinceService.findByName(name);
+  }
+
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Province> {
-    return this.provinceService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Province> {
+    return this.provinceService.findOne(id);
+  }
+
+  @Get(':id/statistics')
+  @Roles(
+    UserRole.IT_ADMIN,
+    UserRole.ZONAL_DIRECTOR,
+    UserRole.PRINCIPAL,
+    UserRole.SCHOOL_ADMIN,
+  )
+  getStatistics(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    return this.provinceService.getProvinceStatistics(id);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin', 'zonal_director')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateProvinceDto: UpdateProvinceDto,
   ): Promise<Province> {
-    return this.provinceService.update(+id, updateProvinceDto);
+    return this.provinceService.update(id, updateProvinceDto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('it_admin')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.provinceService.remove(+id);
+  @Roles(UserRole.IT_ADMIN)
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.provinceService.remove(id);
   }
 }

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { City } from '../entities/city.entity';
 import { Province } from '../entities/province.entity';
 import { CreateCityDto, UpdateCityDto } from '../dto/city.dto';
+import { UserRole } from 'src/interfaces/entity.interface';
 
 @Injectable()
 export class CityService {
@@ -33,13 +34,16 @@ export class CityService {
   }
 
   async findAll(): Promise<City[]> {
-    return this.cityRepository.find({ relations: ['province', 'schools'] });
+    return this.cityRepository.find({
+      relations: ['province', 'schools', 'schools.department'],
+      order: { name: 'ASC' },
+    });
   }
 
   async findOne(id: number): Promise<City> {
     const city = await this.cityRepository.findOne({
       where: { id },
-      relations: ['province', 'schools'],
+      relations: ['province', 'schools', 'schools.department', 'schools.users'],
     });
 
     if (!city) {
@@ -72,5 +76,71 @@ export class CityService {
   async remove(id: number): Promise<void> {
     const city = await this.findOne(id);
     await this.cityRepository.remove(city);
+  }
+
+  async findByProvince(provinceId: number): Promise<City[]> {
+    return this.cityRepository.find({
+      where: { province: { id: provinceId } },
+      relations: ['province', 'schools'],
+      order: { name: 'ASC' },
+    });
+  }
+
+  async getCityStatistics(id: number): Promise<any> {
+    const city = await this.findOne(id);
+
+    const totalSchools = city.schools?.length || 0;
+    const totalTeachers =
+      city.schools?.reduce(
+        (sum, school) =>
+          sum +
+          (school.users?.filter((user) => user.role === UserRole.TEACHER)
+            .length || 0),
+        0,
+      ) || 0;
+    const totalStudents =
+      city.schools?.reduce(
+        (sum, school) => sum + (school.studentCount || 0),
+        0,
+      ) || 0;
+
+    return {
+      totalSchools,
+      totalTeachers,
+      totalStudents,
+      averageStudentTeacherRatio:
+        totalTeachers > 0 ? totalStudents / totalTeachers : 0,
+      schools:
+        city.schools?.map((school) => ({
+          id: school.id,
+          name: school.name,
+          studentCount: school.studentCount,
+          teacherCount: school.teacherCount,
+          studentTeacherRatio: school.studentTeacherRatio,
+        })) || [],
+    };
+  }
+
+  async findByName(name: string): Promise<City | null> {
+    return this.cityRepository.findOne({
+      where: { name },
+      relations: ['province', 'schools'],
+    });
+  }
+
+  async findCitiesWithSchoolsNeedingTeachers(
+    ratioThreshold: number = 30,
+  ): Promise<City[]> {
+    return this.cityRepository
+      .createQueryBuilder('city')
+      .leftJoinAndSelect('city.schools', 'school')
+      .leftJoinAndSelect('city.province', 'province')
+      .where('school.isActive = :active', { active: true })
+      .andWhere('school.teacherCount > 0') // Avoid division by zero
+      .andWhere('(school.studentCount / school.teacherCount) > :threshold', {
+        threshold: ratioThreshold,
+      })
+      .orderBy('city.name', 'ASC')
+      .getMany();
   }
 }
