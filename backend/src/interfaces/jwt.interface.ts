@@ -6,9 +6,3 @@ export interface JwtPayload {
   iat?: number;
   exp?: number;
 }
-
-// PAP credentials interface
-export interface PapCredentials {
-  username: string;
-  password: string;
-}

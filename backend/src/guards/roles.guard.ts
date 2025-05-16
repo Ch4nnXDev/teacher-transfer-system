@@ -5,8 +5,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../decorator/roles/roles.decorator';
-import { AuthenticatedRequest } from 'src/interfaces/auth.interface';
+import { ROLES_KEY } from '../decorator/roles.decorator';
+import {
+  AuthenticatedRequest,
+  SystemUser,
+  AuthenticatedUser,
+} from 'src/interfaces/auth.interface';
 import { UserRole } from 'src/interfaces/entity.interface';
 
 @Injectable()
@@ -30,8 +34,14 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No user found in request');
     }
 
-    // PAP bypasses role checks but still respects role-based permissions
-    if (user.role === UserRole.PAP) {
+    // Type-safe check for system authentication
+    // Method 1: Check if user is SystemUser using type guard
+    if (this.isSystemUser(user)) {
+      return true;
+    }
+
+    // Method 2: Check the request flag
+    if (request.isSystemAuth) {
       return true;
     }
 
@@ -45,5 +55,10 @@ export class RolesGuard implements CanActivate {
     }
 
     return true;
+  }
+
+  // Type guard with properly typed parameter
+  private isSystemUser(user: AuthenticatedUser): user is SystemUser {
+    return 'isSystemAuth' in user && user.isSystemAuth === true;
   }
 }

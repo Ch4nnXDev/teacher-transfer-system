@@ -15,13 +15,14 @@ import { CityService } from './city.service';
 import { CreateCityDto, UpdateCityDto } from '../dto/city.dto';
 import { City } from '../entities/city.entity';
 import { NotArrayPipePipe } from '../pipes/not-array-pipe/not-array-pipe.pipe';
-import { Roles } from '../decorator/roles/roles.decorator';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { Roles } from '../decorator/roles.decorator';
+import { FlexibleAuthGuard } from 'src/guards/flexible-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRole } from 'src/interfaces/entity.interface';
+import { Public } from 'src/decorator/public.decorator';
 
 @Controller('cities')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FlexibleAuthGuard, RolesGuard)
 export class CityController {
   constructor(private readonly cityService: CityService) {}
 
@@ -96,5 +97,12 @@ export class CityController {
   @Roles(UserRole.IT_ADMIN)
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.cityService.remove(id);
+  }
+
+  // Public route example
+  @Get('public/list')
+  @Public()
+  getPublicCityList(): Promise<City[]> {
+    return this.cityService.findAll();
   }
 }

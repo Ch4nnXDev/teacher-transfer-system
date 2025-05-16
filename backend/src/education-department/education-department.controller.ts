@@ -16,13 +16,14 @@ import {
   UpdateEducationDepartmentDto,
 } from '../dto/education-department.dto';
 import { EducationDepartment } from '../entities/education-department.entity';
-import { Roles } from '../decorator/roles/roles.decorator';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { Roles } from '../decorator/roles.decorator';
+import { FlexibleAuthGuard } from 'src/guards/flexible-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRole } from 'src/interfaces/entity.interface';
+import { Public } from 'src/decorator/public.decorator';
 
 @Controller('education-departments')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FlexibleAuthGuard, RolesGuard)
 export class EducationDepartmentController {
   constructor(private readonly departmentService: EducationDepartmentService) {}
 
@@ -95,5 +96,12 @@ export class EducationDepartmentController {
   @Roles(UserRole.IT_ADMIN)
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.departmentService.remove(id);
+  }
+
+  // Public route example
+  @Get('public/types')
+  @Public()
+  getPublicDepartmentTypes(): Promise<EducationDepartment[]> {
+    return this.departmentService.findAll();
   }
 }

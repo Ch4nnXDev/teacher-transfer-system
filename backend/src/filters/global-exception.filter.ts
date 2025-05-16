@@ -5,6 +5,7 @@ import {
   HttpStatus,
   HttpException,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ErrorResponse } from 'src/interfaces/response.interface';
 
 // Global exception filter for non-HTTP exceptions

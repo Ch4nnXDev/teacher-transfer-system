@@ -13,13 +13,14 @@ import {
 import { ProvinceService } from './province.service';
 import { CreateProvinceDto, UpdateProvinceDto } from '../dto/province.dto';
 import { Province } from '../entities/province.entity';
-import { Roles } from '../decorator/roles/roles.decorator';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { Roles } from '../decorator/roles.decorator';
+import { FlexibleAuthGuard } from 'src/guards/flexible-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRole } from 'src/interfaces/entity.interface';
+import { Public } from 'src/decorator/public.decorator';
 
 @Controller('provinces')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FlexibleAuthGuard, RolesGuard)
 export class ProvinceController {
   constructor(private readonly provinceService: ProvinceService) {}
 
@@ -68,5 +69,12 @@ export class ProvinceController {
   @Roles(UserRole.IT_ADMIN)
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.provinceService.remove(id);
+  }
+
+  // Public route example
+  @Get('public/list')
+  @Public()
+  getPublicProvinceList(): Promise<Province[]> {
+    return this.provinceService.findAll();
   }
 }
