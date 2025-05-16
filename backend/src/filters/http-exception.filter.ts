@@ -5,7 +5,10 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { ErrorResponse } from '../interfaces/response.interface';
+import {
+  ErrorResponse,
+  ExceptionResponseObject,
+} from '../interfaces/response.interface';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -17,18 +20,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Get the exception response
     const exceptionResponse = exception.getResponse();
 
-    // Extract the error message
+    // Extract the error message with proper type checking
     let errorMessage: string = exception.message;
 
-    if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
-      const responseObj = exceptionResponse as any;
-
-      if (responseObj.message) {
-        if (Array.isArray(responseObj.message)) {
+    // Type guard to check if response is an object
+    if (this.isExceptionResponseObject(exceptionResponse)) {
+      if (exceptionResponse.message) {
+        if (Array.isArray(exceptionResponse.message)) {
           // For validation errors that return an array of messages
-          errorMessage = responseObj.message[0];
-        } else if (typeof responseObj.message === 'string') {
-          errorMessage = responseObj.message;
+          errorMessage = exceptionResponse.message[0];
+        } else if (typeof exceptionResponse.message === 'string') {
+          errorMessage = exceptionResponse.message;
         }
       }
     }
@@ -43,5 +45,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
     };
 
     response.status(status).json(errorResponse);
+  }
+
+  // Type guard to check if the exception response is an object with expected properties
+  private isExceptionResponseObject(
+    response: unknown,
+  ): response is ExceptionResponseObject {
+    return (
+      typeof response === 'object' && response !== null && 'message' in response
+    );
   }
 }

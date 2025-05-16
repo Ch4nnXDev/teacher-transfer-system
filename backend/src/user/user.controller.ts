@@ -13,14 +13,15 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import { User } from '../entities/user.entity';
-import { Roles } from '../decorator/roles/roles.decorator';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { Roles } from '../decorator/roles.decorator';
+import { FlexibleAuthGuard } from 'src/guards/flexible-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { AuthenticatedRequest } from 'src/interfaces/auth.interface';
 import { UserRole } from 'src/interfaces/entity.interface';
+import { Public } from 'src/decorator/public.decorator';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FlexibleAuthGuard, RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -93,5 +94,12 @@ export class UserController {
   @Roles(UserRole.IT_ADMIN)
   remove(@Param('id', ParseIntPipe) id: string): Promise<void> {
     return this.userService.remove(+id);
+  }
+
+  // Example of a public route
+  @Get('public/health')
+  @Public()
+  healthCheck(): string {
+    return 'User service is healthy';
   }
 }

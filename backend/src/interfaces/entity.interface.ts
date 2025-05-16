@@ -32,5 +32,4 @@ export enum UserRole {
   SCHOOL_ADMIN = 'school_admin',
   TEACHER = 'teacher',
   STAFF = 'staff',
-  PAP = 'pap',
 }

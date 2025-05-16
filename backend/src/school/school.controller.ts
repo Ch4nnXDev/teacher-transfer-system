@@ -11,14 +11,15 @@ import {
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { School } from '../entities/school.entity';
-import { Roles } from '../decorator/roles/roles.decorator';
+import { Roles } from '../decorator/roles.decorator';
 import { CreateSchoolDto, UpdateSchoolDto } from 'src/dto/school.dto';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { FlexibleAuthGuard } from 'src/guards/flexible-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRole } from 'src/interfaces/entity.interface';
+import { Public } from 'src/decorator/public.decorator';
 
 @Controller('schools')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FlexibleAuthGuard, RolesGuard)
 export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}
 
@@ -43,6 +44,12 @@ export class SchoolController {
     @Param('departmentId', ParseIntPipe) departmentId: number,
   ): Promise<School[]> {
     return this.schoolService.findByDepartment(departmentId);
+  }
+
+  @Get('high-ratio')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR)
+  findSchoolsWithHighRatio(): Promise<School[]> {
+    return this.schoolService.findSchoolsWithHighRatio(30);
   }
 
   @Get(':id')
@@ -70,9 +77,25 @@ export class SchoolController {
     return this.schoolService.update(id, updateSchoolDto);
   }
 
+  @Patch(':id/student-count')
+  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR, UserRole.PRINCIPAL)
+  updateStudentCount(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('studentCount') studentCount: number,
+  ): Promise<School> {
+    return this.schoolService.updateStudentCount(id, studentCount);
+  }
+
   @Delete(':id')
   @Roles(UserRole.IT_ADMIN)
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.schoolService.remove(id);
+  }
+
+  // Public route example
+  @Get('public/list')
+  @Public()
+  getPublicSchoolList(): Promise<School[]> {
+    return this.schoolService.findAll();
   }
 }

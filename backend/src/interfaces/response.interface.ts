@@ -11,3 +11,9 @@ export interface ErrorResponse extends BaseResponse<null> {
   error: string;
   statusCode: number;
 }
+
+export interface ExceptionResponseObject {
+  message: string | string[];
+  error?: string;
+  statusCode?: number;
+}

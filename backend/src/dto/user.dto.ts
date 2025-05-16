@@ -10,7 +10,6 @@ import {
   IsPositive,
   MinLength,
   Matches,
-  IsNotIn,
 } from 'class-validator';
 import { UserRole } from '../interfaces/entity.interface';
 
@@ -47,7 +46,6 @@ export class CreateUserDto {
   readonly password: string;
 
   @IsEnum(UserRole, { message: 'Invalid role' })
-  @IsNotIn([UserRole.PAP], { message: 'PAP role cannot be assigned to users' })
   readonly role: UserRole;
 
   @IsString()
@@ -114,7 +112,6 @@ export class UpdateUserDto {
   readonly password?: string;
 
   @IsEnum(UserRole, { message: 'Invalid role' })
-  @IsNotIn([UserRole.PAP], { message: 'PAP role cannot be assigned to users' })
   @IsOptional()
   readonly role?: UserRole;
 

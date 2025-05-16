@@ -12,19 +12,20 @@ import {
 import { TransferService } from './transfer.service';
 import { TransferRequest } from '../entities/transfer-request.entity';
 import { School } from '../entities/school.entity';
-import { Roles } from '../decorator/roles/roles.decorator';
+import { Roles } from '../decorator/roles.decorator';
 import {
   CreateTransferRequestDto,
   UpdateTransferRequestDto,
   ReviewTransferRequestDto,
 } from 'src/dto/transfer-request.dto';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { FlexibleAuthGuard } from 'src/guards/flexible-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { AuthenticatedRequest } from 'src/interfaces/auth.interface';
 import { UserRole } from 'src/interfaces/entity.interface';
+import { Public } from 'src/decorator/public.decorator';
 
 @Controller('transfers')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FlexibleAuthGuard, RolesGuard)
 export class TransferController {
   constructor(private readonly transferService: TransferService) {}
 
@@ -139,5 +140,14 @@ export class TransferController {
       reviewTransferRequestDto,
       req.user.userId,
     );
+  }
+
+  // Public route example - Transfer statistics
+  @Get('public/statistics')
+  @Public()
+  getPublicTransferStatistics(): { message: string } {
+    return {
+      message: 'Transfer statistics available for authenticated users only',
+    };
   }
 }
