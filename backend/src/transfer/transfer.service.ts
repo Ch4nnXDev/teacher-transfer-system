@@ -441,9 +441,12 @@ export class TransferService {
     const schoolsWithDistance = schools
       .map((school) => {
         const distance = this.calculateDistance(teacher, school);
+        // Access the getter before spreading to preserve it
+        const ratio = school.studentTeacherRatio;
         return {
           ...school,
           distanceFromTeacher: distance,
+          studentTeacherRatio: ratio, // Explicitly include the ratio value
         };
       })
       .sort((a, b) => {
@@ -457,10 +460,13 @@ export class TransferService {
         return a.distanceFromTeacher - b.distanceFromTeacher;
       });
 
-    // Remove the distanceFromTeacher property before returning
-    return schoolsWithDistance
-      .slice(0, 10)
-      .map(({ distanceFromTeacher, ...school }) => school);
+    // Return School objects (removing the extra distanceFromTeacher property)
+    return schoolsWithDistance.slice(0, 10).map((schoolWithDistance) => {
+      // Create a new School object without the distanceFromTeacher property
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { distanceFromTeacher, ...school } = schoolWithDistance;
+      return school as School;
+    });
   }
 
   async findAll(): Promise<TransferRequest[]> {

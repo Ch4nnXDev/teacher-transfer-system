@@ -21,7 +21,7 @@ import { TeacherAssignment } from '../entities/teacher-assignment.entity';
         host: configService.get('DB_HOST', 'localhost'),
         port: configService.get<number>('DB_PORT', 3306),
         username: configService.get('DB_USERNAME', 'root'),
-        password: configService.get('DB_PASSWORD', ''),
+        // password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_DATABASE', 'school_management'),
         entities: [
           User,

@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
-import { BasicStrategy } from 'passport-http';
+import { BasicStrategy } from 'src/strategy/basic.strategy';
 import { BearerStrategy } from 'src/strategy/bearer.strategy';
 import { JwtStrategy } from 'src/strategy/jwt-strategy';
 import { LocalStrategy } from 'src/strategy/local_strategy';
