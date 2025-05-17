@@ -16,6 +16,7 @@ import {
   UserRole,
   TeacherAssignmentStatus,
   TeacherLeavingReason,
+  AssignableUserRole,
 } from 'src/interfaces/entity.interface';
 
 @Injectable()
@@ -55,10 +56,12 @@ export class UserService {
       );
     }
 
+    console.log(createUserDto);
+
     // Validate role permissions (skip for system auth)
     if (authenticatedUser) {
       this.validateUserCreationPermissions(
-        authenticatedUser.role as UserRole,
+        authenticatedUser.role as AssignableUserRole,
         userData.role,
       );
     }
@@ -102,11 +105,20 @@ export class UserService {
   }
 
   private validateUserCreationPermissions(
-    creatorRole: UserRole,
-    targetRole: UserRole,
+    creatorRole: AssignableUserRole,
+    targetRole: AssignableUserRole,
   ): void {
-    // Define role hierarchy permissions
-    const permissions: Record<UserRole, UserRole[]> = {
+    console.log(creatorRole, targetRole);
+    // Define role hierarchy permissions - only for assignable roles
+    const permissions: Record<UserRole, AssignableUserRole[]> = {
+      [UserRole.SYSTEM_ADMIN]: [
+        UserRole.IT_ADMIN,
+        UserRole.ZONAL_DIRECTOR,
+        UserRole.PRINCIPAL,
+        UserRole.SCHOOL_ADMIN,
+        UserRole.TEACHER,
+        UserRole.STAFF,
+      ],
       [UserRole.IT_ADMIN]: [
         UserRole.IT_ADMIN,
         UserRole.ZONAL_DIRECTOR,
@@ -125,6 +137,7 @@ export class UserService {
       [UserRole.SCHOOL_ADMIN]: [],
       [UserRole.TEACHER]: [],
       [UserRole.STAFF]: [],
+      [UserRole.ANY]: [],
     };
 
     const allowedRoles = permissions[creatorRole] || [];
@@ -178,7 +191,7 @@ export class UserService {
     });
   }
 
-  async findByRole(role: UserRole): Promise<User[]> {
+  async findByRole(role: AssignableUserRole): Promise<User[]> {
     return this.userRepository.find({
       where: { role },
       relations: [
@@ -289,7 +302,7 @@ export class UserService {
     // Validate role change permissions (skip for system auth)
     if (userData.role && authenticatedUser) {
       this.validateUserCreationPermissions(
-        authenticatedUser.role as UserRole,
+        authenticatedUser.role as AssignableUserRole,
         userData.role,
       );
     }

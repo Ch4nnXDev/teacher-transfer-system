@@ -3,7 +3,6 @@ import {
   IsNotEmpty,
   IsEmail,
   IsOptional,
-  IsEnum,
   IsNumber,
   IsDateString,
   IsBoolean,
@@ -11,13 +10,17 @@ import {
   MinLength,
   Matches,
 } from 'class-validator';
-import { UserRole } from '../interfaces/entity.interface';
+import { AssignableUserRole } from '../interfaces/entity.interface';
+import { IsAssignableUserRole } from 'src/validators/assignable-user-role.validator';
 
 // User DTOs
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty({ message: 'NIC is required' })
-  @Matches(/^[0-9]{9}[vVxX]$|^[0-9]{12}$/, { message: 'Invalid NIC format' })
+  @Matches(/^((\d{9}[vVxX])|(\d{12}))$/, {
+    message:
+      'Invalid NIC format. Must be either old format (9 digits + V/X) or new format (12 digits)',
+  })
   readonly nic: string;
 
   @IsString()
@@ -45,8 +48,8 @@ export class CreateUserDto {
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   readonly password: string;
 
-  @IsEnum(UserRole, { message: 'Invalid role' })
-  readonly role: UserRole;
+  @IsAssignableUserRole()
+  readonly role: AssignableUserRole;
 
   @IsString()
   @IsOptional()
@@ -111,9 +114,9 @@ export class UpdateUserDto {
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   readonly password?: string;
 
-  @IsEnum(UserRole, { message: 'Invalid role' })
+  @IsAssignableUserRole()
   @IsOptional()
-  readonly role?: UserRole;
+  readonly role?: AssignableUserRole;
 
   @IsString()
   @IsOptional()

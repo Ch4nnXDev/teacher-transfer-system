@@ -1,18 +1,18 @@
 import { Request } from 'express';
-import { UserRole } from './entity.interface';
+import { AssignableUserRole, UserRole } from './entity.interface';
 
 // Base user type for regular users
 export interface RegularUser {
   userId: number;
   email: string;
-  role: UserRole;
+  role: AssignableUserRole;
 }
 
 // System user type for Basic/Bearer auth
 export interface SystemUser {
   userId: -1;
   email: 'system@admin.local';
-  role: 'system_admin';
+  role: UserRole.SYSTEM_ADMIN;
   isSystemAuth: true;
 }
 
@@ -37,7 +37,7 @@ export interface AuthResponse {
     firstName: string;
     lastName: string;
     email: string;
-    role: UserRole;
+    role: AssignableUserRole;
   };
   token: string;
 }

@@ -17,7 +17,7 @@ import { Roles } from '../decorator/roles.decorator';
 import { FlexibleAuthGuard } from 'src/guards/flexible-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { AuthenticatedRequest } from 'src/interfaces/auth.interface';
-import { UserRole } from 'src/interfaces/entity.interface';
+import { AssignableUserRole, UserRole } from 'src/interfaces/entity.interface';
 import { Public } from 'src/decorator/public.decorator';
 
 @Controller('users')
@@ -26,11 +26,12 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  @Roles(UserRole.IT_ADMIN, UserRole.ZONAL_DIRECTOR, UserRole.PRINCIPAL)
+  @Roles(UserRole.IT_ADMIN)
   create(
     @Body() createUserDto: CreateUserDto,
     @Request() req: AuthenticatedRequest,
   ): Promise<User> {
+    console.log(createUserDto);
     return this.userService.create(createUserDto, req.user);
   }
 
@@ -52,7 +53,7 @@ export class UserController {
     UserRole.PRINCIPAL,
     UserRole.SCHOOL_ADMIN,
   )
-  findByRole(@Param('role') role: UserRole): Promise<User[]> {
+  findByRole(@Param('role') role: AssignableUserRole): Promise<User[]> {
     return this.userService.findByRole(role);
   }
 
@@ -96,7 +97,6 @@ export class UserController {
     return this.userService.remove(+id);
   }
 
-  // Example of a public route
   @Get('public/health')
   @Public()
   healthCheck(): string {

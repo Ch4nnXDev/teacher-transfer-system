@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SystemUser } from 'src/interfaces/auth.interface';
+import { UserRole } from 'src/interfaces/entity.interface';
 
 @Injectable()
 export class BasicStrategy extends PassportStrategy(Strategy, 'basic') {
@@ -24,7 +25,7 @@ export class BasicStrategy extends PassportStrategy(Strategy, 'basic') {
       const systemUser: SystemUser = {
         userId: -1,
         email: 'system@admin.local',
-        role: 'system_admin',
+        role: UserRole.SYSTEM_ADMIN,
         isSystemAuth: true,
       };
       return systemUser;

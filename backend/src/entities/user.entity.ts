@@ -9,7 +9,7 @@ import {
 import { School } from './school.entity';
 import { TransferRequest } from './transfer-request.entity';
 import { TeacherAssignment } from './teacher-assignment.entity';
-import { UserRole } from '../interfaces/entity.interface';
+import { AssignableUserRole, UserRole } from '../interfaces/entity.interface';
 
 @Entity()
 @Index(['email'], { unique: true })
@@ -41,10 +41,16 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: UserRole,
-    default: UserRole.TEACHER,
+    enum: [
+      UserRole.IT_ADMIN,
+      UserRole.ZONAL_DIRECTOR,
+      UserRole.PRINCIPAL,
+      UserRole.SCHOOL_ADMIN,
+      UserRole.TEACHER,
+      UserRole.STAFF,
+    ],
   })
-  role: UserRole;
+  role: AssignableUserRole;
 
   @Column({ nullable: true })
   employeeId: string;

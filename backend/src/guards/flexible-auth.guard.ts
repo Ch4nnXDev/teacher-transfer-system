@@ -13,13 +13,11 @@ import {
   AuthenticatedUser,
 } from 'src/interfaces/auth.interface';
 import { BasicAuthGuard } from './basic-auth.guard';
-import { BearerAuthGuard } from './bearer-auth.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Injectable()
 export class FlexibleAuthGuard implements CanActivate {
   private basicGuard: BasicAuthGuard;
-  private bearerGuard: BearerAuthGuard;
   private jwtGuard: JwtAuthGuard;
 
   constructor(
@@ -27,7 +25,6 @@ export class FlexibleAuthGuard implements CanActivate {
     private configService: ConfigService,
   ) {
     this.basicGuard = new BasicAuthGuard();
-    this.bearerGuard = new BearerAuthGuard();
     this.jwtGuard = new JwtAuthGuard();
   }
 
@@ -42,11 +39,9 @@ export class FlexibleAuthGuard implements CanActivate {
       return true;
     }
 
-    // Check which auth methods are enabled
+    // Check if basic auth is enabled
     const basicAuthEnabled =
       this.configService.get<string>('BASIC_AUTH_ENABLED') === 'true';
-    const bearerAuthEnabled =
-      this.configService.get<string>('BEARER_AUTH_ENABLED') === 'true';
 
     // Try different authentication methods in order
     let lastError: Error | null = null;
@@ -69,25 +64,8 @@ export class FlexibleAuthGuard implements CanActivate {
       }
     }
 
-    // Try Bearer Auth if enabled
-    if (bearerAuthEnabled) {
-      try {
-        const result = await this.bearerGuard.canActivate(context);
-        if (result) {
-          const request = context
-            .switchToHttp()
-            .getRequest<AuthenticatedRequest>();
-          if (this.isSystemUser(request.user)) {
-            request.isSystemAuth = true;
-          }
-          return true;
-        }
-      } catch (error) {
-        lastError = error as Error;
-      }
-    }
-
     // Try JWT Auth (always enabled)
+    // This handles both regular JWT tokens and Bearer tokens
     try {
       const result = await this.jwtGuard.canActivate(context);
       if (result) {

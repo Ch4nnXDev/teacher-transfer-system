@@ -23,16 +23,55 @@ export class AuthController {
   @UseGuards(FlexibleAuthGuard)
   @Get('profile')
   getProfile(@Request() req: AuthenticatedRequest) {
+    // Only return profile for regular users (JWT auth)
+    // System auth (Basic/Bearer) should not use this endpoint
+    if (req.isSystemAuth) {
+      return {
+        message:
+          'System authentication detected. Use system endpoints instead.',
+        systemAuth: true,
+      };
+    }
     return req.user;
   }
 
   @UseGuards(FlexibleAuthGuard)
   @Post('verify-token')
   verifyToken(@Request() req: AuthenticatedRequest) {
+    // Different response based on auth type
+    if (req.isSystemAuth) {
+      return {
+        valid: true,
+        authType: 'system',
+        message: 'System authentication successful',
+      };
+    }
+
+    // For JWT tokens, return full verification info
     return {
       valid: true,
+      authType: 'jwt',
       user: req.user,
-      isSystemAuth: req.isSystemAuth || false,
+      isSystemAuth: false,
+    };
+  }
+
+  // New endpoint specifically for system auth verification
+  @UseGuards(FlexibleAuthGuard)
+  @Get('system/verify')
+  verifySystemAuth(@Request() req: AuthenticatedRequest) {
+    if (!req.isSystemAuth) {
+      return {
+        valid: false,
+        message:
+          'This endpoint requires system authentication (Basic or Bearer)',
+      };
+    }
+
+    return {
+      valid: true,
+      message: 'System authentication verified',
+      timestamp: new Date().toISOString(),
     };
   }
 }

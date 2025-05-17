@@ -27,9 +27,16 @@ export enum TeacherLeavingReason {
 // User roles enum
 export enum UserRole {
   IT_ADMIN = 'it_admin',
+  SYSTEM_ADMIN = 'system_admin',
   ZONAL_DIRECTOR = 'zonal_director',
   PRINCIPAL = 'principal',
   SCHOOL_ADMIN = 'school_admin',
   TEACHER = 'teacher',
   STAFF = 'staff',
+  ANY = 'any',
 }
+
+export type AssignableUserRole = Exclude<
+  UserRole,
+  UserRole.ANY | UserRole.SYSTEM_ADMIN
+>;
